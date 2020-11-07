@@ -20,11 +20,25 @@ async def on_message(message):
     if message.guild is None:
         return
     
+    if str(message.guild.id) != str(762171368942338083):
+        return
+
     print(f'[{message.guild.name}] #{message.channel} - ({message.author}[{message.author.bot}]): {message.content}')
+
+    try:
+        server = ServerModel.select().where(ServerModel.server == str(message.guild.id)).order_by(ServerModel.created_date.desc()).get()
+    except DoesNotExist:
+        server, _ = ServerModel.get_or_create(server=str(message.guild.id), server_name=message.guild.name)
+        logging.info(f'New channel: ({server.server_id}) {server.server} added')
+    except Exception as e:
+        logging.critical(f'Error when trying to get most recent server: {e}')
     
-    server, _ = ServerModel.get_or_create(server=message.guild.name)
+    # If guild.name is not the same as last guild.name, insert new row
+    if server.server_name != message.guild.name:
+        ServerModel.create(server=str(message.guild.id), server_name=message.guild.name)
+    
     channel, _ = ChannelModel.get_or_create(channel=message.channel, server_id=server.server_id)
-    message, _ = MessageModel.get_or_create(author=str(message.author), is_bot=message.author.bot, message_content=message.content, channel_id=channel.channel_id)
+    MessageModel.create(author=str(message.author), is_bot=message.author.bot, message_content=message.content, channel_id=channel.channel_id)
 
 def setup_database():
     database.create_tables([ChannelModel, ServerModel, MessageModel])

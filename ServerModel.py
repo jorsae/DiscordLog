@@ -4,7 +4,8 @@ from BaseModel import BaseModel
 
 class ServerModel(BaseModel):
     server_id = PrimaryKeyField()
-    server = TextField(unique=True)
+    server = TextField()
+    server_name = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
