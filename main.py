@@ -1,6 +1,9 @@
 from peewee import *
-import settings
+import os
+import logging
 
+import settings
+import constants
 from BaseModel import BaseModel, database
 from DiscordChannel import DiscordChannel
 
@@ -12,14 +15,15 @@ def main():
 
 
 def setup_logging():
-    logFolder = 'logs'
-    logFile = 'discordLog.log'
+    logFolder = constants.LOG_FOLDER
+    logFile = constants.LOG_FILE
     if not os.path.isdir(logFolder):
         os.makedirs(logFolder)
 
     logging.basicConfig(filename=f'{logFolder}/{logFile}', level=logging.INFO, format='%(asctime)s %(levelname)s:[%(filename)s:%(lineno)d] %(message)s')
 
 if __name__ == '__main__':
+    setup_logging()
     settings.parse_settings()
     settings.print_settings()
 
