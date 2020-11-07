@@ -20,9 +20,6 @@ async def on_message(message):
     if message.guild is None:
         return
     
-    if str(message.guild.id) != str(762171368942338083):
-        return
-
     print(f'[{message.guild.name}] #{message.channel} - ({message.author}[{message.author.bot}]): {message.content}')
     
     server = get_server(message)
