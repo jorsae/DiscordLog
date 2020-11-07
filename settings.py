@@ -6,14 +6,12 @@ class Settings():
         self.settings_file = settings_file
         self.token = None
         self.database_file = 'DiscordDatabase.db'
-        self.log_file = 'DiscordLog.log'
     
     def print_settings(self):
         token = 'Not set' if self.token is None else 'set'
         print(f'settings_file: {self.settings_file}')
         print(f'Token: {token}')
         print(f'database_file: {self.database_file}')
-        print(f'log_file: {self.log_file}')
 
     def parse_settings(self):
         try:

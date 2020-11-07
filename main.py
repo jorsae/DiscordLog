@@ -7,7 +7,7 @@ settings = settings.Settings('settings.json')
 
 def setup_logging():
     logFolder = 'logs'
-    logFile = 'muda.log'
+    logFile = 'discordLog.log'
     if not os.path.isdir(logFolder):
         os.makedirs(logFolder)
 
