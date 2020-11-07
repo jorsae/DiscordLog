@@ -33,22 +33,24 @@ async def on_message(message):
 
 def get_channel(server, message):
     try:
-        channel = ChannelModel.select().where(ChannelModel.server_id == server.server_id, ChannelModel.channel_name == server.server_name).get()
+        channel = ChannelModel.select().where(
+            (ChannelModel.server_id == server.server_id) &
+            (ChannelModel.channel == message.guild.id) &
+            (ChannelModel.channel_name == message.guild.name)
+            ).get()
         return channel
     except DoesNotExist:
         channel, _ = ChannelModel.get_or_create(channel=message.channel.id, channel_name=message.channel, server_id=server.server_id)
-        logging.info(f'New channel: {message.channel} added')
         return channel
     except Exception as e:
         logging.critical(f'get_channel: {e}')
 
 def get_server(message):
     try:
-        server = ServerModel.select().where(ServerModel.server == str(message.guild.id)).order_by(ServerModel.created_date.desc()).get()
+        server = ServerModel.select().where(ServerModel.server_name == str(message.guild.id)).order_by(ServerModel.created_date.desc()).get()
         return server
     except DoesNotExist:
         server, _ = ServerModel.get_or_create(server=str(message.guild.id), server_name=message.guild.name)
-        logging.info(f'New server: ({server.server_id}) {server.server} added')
         return server
     except Exception as e:
         logging.critical(f'get_server: {e}')
