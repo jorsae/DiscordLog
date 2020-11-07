@@ -1,18 +1,27 @@
 from peewee import *
+import discord
 import os
 import logging
 
 import settings
 import constants
 from BaseModel import BaseModel, database
+from ChannelModel import ChannelModel
+from ServerModel import ServerModel
 from DiscordChannel import DiscordChannel
 
+client = discord.Client()
 settings = settings.Settings('settings.json')
 
-def main():
-    tt = type('test_table', (DiscordChannel,), {})
-    database.create_tables([tt])
+@client.event
+async def on_message(message):
+    print(f'[{message.guild.name}] #{message.channel} - ({message.author}): {message.content}')
+    
+    server, created = ServerModel.get_or_create(server=message.guild.name)
+    channel, created = ChannelModel.get_or_create(channel=message.channel, server_id=server.server_id)
 
+def setup_database():
+    database.create_tables([ChannelModel, ServerModel])
 
 def setup_logging():
     logFolder = constants.LOG_FOLDER
@@ -27,4 +36,6 @@ if __name__ == '__main__':
     settings.parse_settings()
     settings.print_settings()
 
-    main()
+    setup_database()
+
+    client.run(settings.token, bot=False)
