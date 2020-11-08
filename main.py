@@ -18,33 +18,35 @@ settings = settings.Settings('settings.json')
 async def on_message(message):
     guild_id = ''
     guild_name = ''
+    is_on_mobile = 0
     # Filter out dm
     if message.guild is None:
         guild_id = '-1'
         guild_name = 'direct-message'
+        is_on_mobile = -1
     else:
         guild_id = str(message.guild.id)
         guild_name = str(message.guild.name)
+        is_on_mobile = message.author.is_on_mobile()
     
     author = message.author
-    
-    print(f'[{guild_name}] #{message.channel} - ({author}[{author.is_on_mobile()}/{author.bot}]): {message.content}')
+    print(f'[{guild_name}] #{message.channel} - ({author}[{is_on_mobile}/{author.bot}]): {message.content}')
     
     server = get_server(guild_id, guild_name)
-    channel = get_channel(server, message)
+    channel = get_channel(server, guild_id, guild_name, message)
 
     # If guild.name is not the same as last guild.name, insert new row
     if server.server_name != guild_name:
         ServerModel.create(server=guild_id, server_name=message.guild.name)
     
-    MessageModel.create(author=str(author), is_on_mobile=author.is_on_mobile(), is_bot=author.bot, message_content=message.content, channel_id=channel.channel_id)
+    MessageModel.create(author=str(author), is_on_mobile=is_on_mobile, is_bot=author.bot, message_content=message.content, channel_id=channel.channel_id)
 
-def get_channel(server, message):
+def get_channel(server, guild_id, guild_name, message):
     try:
         channel = ChannelModel.select().where(
             (ChannelModel.server_id == server.server_id) &
-            (ChannelModel.channel == message.guild.id) &
-            (ChannelModel.channel_name == message.guild.name)
+            (ChannelModel.channel == guild_id) &
+            (ChannelModel.channel_name == guild_name)
             ).get()
         return channel
     except DoesNotExist:
