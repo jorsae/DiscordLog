@@ -16,20 +16,28 @@ settings = settings.Settings('settings.json')
 
 @client.event
 async def on_message(message):
+    guild_id = ''
+    guild_name = ''
     # Filter out dm
     if message.guild is None:
-        return
+        guild_id = '-1'
+        guild_name = 'direct-message'
+    else:
+        guild_id = str(message.guild.id)
+        guild_name = str(message.guild.name)
     
-    print(f'[{message.guild.name}] #{message.channel} - ({message.author}[{message.author.bot}]): {message.content}')
+    author = message.author
     
-    server = get_server(message)
+    print(f'[{guild_name}] #{message.channel} - ({author}[{author.is_on_mobile()}/{author.bot}]): {message.content}')
+    
+    server = get_server(guild_id, guild_name)
     channel = get_channel(server, message)
 
     # If guild.name is not the same as last guild.name, insert new row
-    if server.server_name != message.guild.name:
-        ServerModel.create(server=str(message.guild.id), server_name=message.guild.name)
+    if server.server_name != guild_name:
+        ServerModel.create(server=guild_id, server_name=message.guild.name)
     
-    MessageModel.create(author=str(message.author), is_bot=message.author.bot, message_content=message.content, channel_id=channel.channel_id)
+    MessageModel.create(author=str(author), is_on_mobile=author.is_on_mobile(), is_bot=author.bot, message_content=message.content, channel_id=channel.channel_id)
 
 def get_channel(server, message):
     try:
@@ -45,15 +53,14 @@ def get_channel(server, message):
     except Exception as e:
         logging.critical(f'get_channel: {e}')
 
-def get_server(message):
-    try:
-        server = ServerModel.select().where(ServerModel.server_name == str(message.guild.id)).order_by(ServerModel.created_date.desc()).get()
-        return server
-    except DoesNotExist:
-        server, _ = ServerModel.get_or_create(server=str(message.guild.id), server_name=message.guild.name)
-        return server
-    except Exception as e:
-        logging.critical(f'get_server: {e}')
+def get_server(guild_id, guild_name):
+    server, created = ServerModel.get_or_create(server=guild_id, server_name=guild_name)
+    if created is False:
+        ServerModel.update(last_used=datetime.datetime.now()).where(
+            (ServerModel.server_id == server.server_id) &
+            (ServerModel.server_name == server.server_name)
+        ).execute()
+    return server
 
 def setup_database():
     database.create_tables([ChannelModel, ServerModel, MessageModel])

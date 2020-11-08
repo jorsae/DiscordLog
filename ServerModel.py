@@ -7,6 +7,7 @@ class ServerModel(BaseModel):
     server = TextField()
     server_name = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
+    last_used = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
         db_table = 'Servers'
