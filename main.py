@@ -30,6 +30,8 @@ async def on_message(message):
         is_on_mobile = message.author.is_on_mobile()
     
     author = message.author
+    if str(author) == 'Kann4#9628':
+        return
     
     server = get_server(guild_id, guild_name)
     channel = get_channel(server, guild_id, guild_name, message)
